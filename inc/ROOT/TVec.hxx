@@ -11,9 +11,9 @@
 #ifndef ROOT_TVEC
 #define ROOT_TVEC
 
-#include <ROOT/TSeq.hxx>
 #include <TTreeReaderArray.h>
 
+#include <algorithm> // std::transform
 #include <numeric> // for inner_product
 #include <sstream>
 #include <type_traits>
@@ -21,6 +21,15 @@
 
 namespace ROOT {
 
+// TVec fwd decl
+namespace Experimental {
+namespace VecOps {
+template<typename T>
+class TVec;
+}
+}
+
+// internals
 namespace Internal {
 
 namespace VecOps {
@@ -48,6 +57,13 @@ void CheckSizes(size_t s0, size_t s1, const char *opName)
       err << "Cannot perform operation " << opName << ". The array sizes differ (" << s0 << " and " << s1 << ")";
       throw std::runtime_error(err.str());
    }
+}
+
+// Apply unary operation to each element of a TVec
+template <typename T, typename F>
+void ApplyToEach(F &&f, TVec<T> &v)
+{
+   std::transform(v.begin(), v.end(), v.begin(), f);
 }
 } // End of VecOps NS
 
@@ -163,6 +179,12 @@ public:
    /** @name Iterators
    */
    ///@{
+   iterator begin() { return fVector.begin(); }
+   iterator end() { return fVector.end(); }
+   const_iterator begin() const { return cbegin(); }
+   const_iterator end() const { return cend(); }
+   const_iterator cbegin() const { return fVector.cbegin(); }
+   const_iterator cend() const { return fVector.cend(); }
    ///@}
 
    /** @name Capacity
