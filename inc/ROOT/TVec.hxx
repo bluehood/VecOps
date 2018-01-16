@@ -88,7 +88,7 @@ private:
    size_t fArraySize = 0;
    void CheckOwnership() const
    {
-      if (fVector.empty())
+      if (fVector.empty()) // FIXME empty/default-constructed TVecs give a false positive here
          throw std::runtime_error("This TVec instance cannot be modified");
    }
 
@@ -130,6 +130,7 @@ public:
    /** @name Element access
    */
    ///@{
+   // FIXME constness mismatch: fArray is const but reference is not, operator[] is broken for non-const TVecs
    reference operator[](size_type pos)
    {
       CheckOwnership();
@@ -425,12 +426,14 @@ TVec<double> sqrt(const TVec<T>& v)
    }
    return newTVec;
 }
+// TODO sqrt of rvalue-ref to TVec can move and operate in-place instead, which is more efficient
 ///@}
 
 /// Inner product
 template <typename T, typename V>
 typename std::common_type<T, V>::type Dot (const TVec<T> v0, const TVec<V> v1)
 {
+  // FIXME do we need a CheckSizes here?
    return std::inner_product(v0.data(), v0.data()+v0.size(), v1.data(), typename std::common_type<T, V>::type (0));
 }
 
